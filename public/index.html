@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PixelVault | Razorpay Design Asset Storefront</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white antialiased">
+
+  <nav class="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-black text-xl">P</div>
+        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">PixelVault</span>
+      </div>
+      <div id="auth-controls" class="flex items-center gap-4">
+        <button onclick="openAuthModal('login')" class="text-sm font-semibold text-slate-300 hover:text-white transition">Sign In</button>
+        <button onclick="openAuthModal('signup')" class="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 rounded-xl transition">Get Started</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mb-12">
+      <h2 class="text-3xl font-black tracking-tight">Premium Assets Architecture</h2>
+      <p class="text-sm text-slate-400 mt-1">Select an asset to view technical specs, license parameters, and secure payment setups via UPI/Cards.</p>
+    </div>
+
+    <div id="product-grid" class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      </div>
+  </main>
+
+  <div id="product-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl my-8 relative shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+      
+      <button onclick="closeProductModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-200 z-10 bg-slate-950/50 p-2 rounded-full border border-slate-800">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 p-6 lg:p-8">
+        <div class="lg:col-span-5 flex flex-col gap-4">
+          <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden aspect-square">
+            <img id="modal-product-img" src="" alt="" class="w-full h-full object-cover">
+          </div>
+          <div class="p-4 bg-slate-950/50 border border-slate-800/60 rounded-xl space-y-2 text-xs text-slate-400">
+            <div class="flex justify-between"><span class="font-medium">File Format:</span><span class="text-slate-200">ZIP File Container</span></div>
+            <div class="flex justify-between"><span class="font-medium">Delivery:</span><span class="text-green-400">Instant Download</span></div>
+            <div class="flex justify-between"><span class="font-medium">License:</span><span class="text-slate-200">Commercial Use Allowed</span></div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 flex flex-col justify-between">
+          <div>
+            <span class="text-xs uppercase tracking-widest font-bold text-indigo-400">Verified Marketplace Asset</span>
+            <h3 id="modal-product-title" class="text-3xl font-black text-white mt-1 mb-4 tracking-tight">Product Title</h3>
+            
+            <div class="flex items-baseline gap-2 pb-4 mb-4 border-b border-slate-800">
+              <span class="text-sm font-semibold text-slate-400">Price:</span>
+              <span id="modal-product-price" class="text-4xl font-black text-indigo-400">₹0.00</span>
+            </div>
+
+            <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wide mb-2">Product Description</h4>
+            <p id="modal-product-desc" class="text-slate-400 text-sm leading-relaxed mb-6">Detailed description goes here...</p>
+          </div>
+
+          <div class="pt-6 border-t border-slate-800">
+            <button id="modal-checkout-btn" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-xl shadow-indigo-600/20 transition flex items-center justify-center gap-2">
+              Proceed to Secure Checkout
+            </button>
+            <p class="text-center text-xs text-slate-500 mt-3 flex items-center justify-center gap-1">
+              🔒 UPI, Netbanking, and Card payments processed securely via Razorpay.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 relative shadow-2xl">
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-300">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <h3 id="modal-title" class="text-2xl font-bold mb-6 text-white">Sign In</h3>
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        <div id="name-field" class="hidden">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Your Name</label>
+          <input type="text" id="auth-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Email Address</label>
+          <input type="email" id="auth-email" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>
+          <input type="password" id="auth-password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition">
+        </div>
+        <button type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl text-white mt-4 transition">Continue</button>
+      </form>
+      <p class="mt-6 text-sm text-center text-slate-400">
+        <span id="modal-toggle-text">Don't have an account?</span>
+        <button onclick="toggleAuthMode()" id="modal-toggle-btn" class="text-indigo-400 font-semibold hover:underline ml-1">Create one</button>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    let cacheProducts = [];
+    let currentMode = 'login';
+
+    function openAuthModal(mode = 'login') {
+      currentMode = mode;
+      document.getElementById('auth-modal').classList.remove('hidden');
+      document.getElementById('modal-title').innerText = mode === 'login' ? 'Welcome Back' : 'Create Account';
+      document.getElementById('name-field').classList.toggle('hidden', mode === 'login');
+      document.getElementById('modal-toggle-text').innerText = mode === 'login' ? "Don't have an account?" : "Already have an account?";
+      document.getElementById('modal-toggle-btn').innerText = mode === 'login' ? "Create one" : "Sign In";
+    }
+
+    function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
+    function toggleAuthMode() { openAuthModal(currentMode === 'login' ? 'signup' : 'login'); }
+
+    function checkUserStatus() {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+      const authControls = document.getElementById('auth-controls');
+      if (token && user) {
+        authControls.innerHTML = `
+          <div class="flex items-center gap-4">
+            <span class="text-sm text-slate-300 font-medium">Hello, <strong class="text-white">${user.name}</strong></span>
+            <button onclick="logout()" class="text-sm font-semibold text-slate-400 hover:text-rose-400 transition">Sign Out</button>
+          </div>`;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.reload();
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      const name = document.getElementById('auth-name').value;
+      const url = currentMode === 'login' ? '/api/auth/login' : '/api/auth/signup';
+      const body = currentMode === 'login' ? { email, password } : { name, email, password };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        closeAuthModal();
+        checkUserStatus();
+      } else {
+        alert(data.error);
+      }
+    }
+
+    function viewProductDetail(productId) {
+      const product = cacheProducts.find(p => p._id === productId);
+      if (!product) return;
+
+      document.getElementById('modal-product-img').src = product.image;
+      document.getElementById('modal-product-img').alt = product.title;
+      document.getElementById('modal-product-title').innerText = product.title;
+      document.getElementById('modal-product-price').innerText = `₹${(product.price / 100).toFixed(2)}`;
+      document.getElementById('modal-product-desc').innerText = product.description;
+      
+      const btn = document.getElementById('modal-checkout-btn');
+      btn.onclick = () => checkout(product._id);
+
+      document.getElementById('product-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeProductModal() {
+      document.getElementById('product-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    async function fetchProducts() {
+      try {
+        const res = await fetch('/api/products');
+        cacheProducts = await res.json();
+        const grid = document.getElementById('product-grid');
+
+        grid.innerHTML = cacheProducts.map(product => `
+          <div onclick="viewProductDetail('${product._id}')" class="bg-slate-900/40 border border-slate-800/80 rounded-2xl overflow-hidden backdrop-blur-sm group hover:border-slate-700/80 cursor-pointer transition-all duration-300">
+            <div class="relative overflow-hidden h-60 bg-slate-950">
+              <img src="${product.image}" alt="${product.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent"></div>
+            </div>
+            <div class="p-6">
+              <div class="flex justify-between items-start gap-4 mb-2">
+                <h4 class="text-lg font-bold text-white tracking-tight group-hover:text-indigo-400 transition">${product.title}</h4>
+                <span class="text-lg font-black text-indigo-400">₹${(product.price / 100).toFixed(2)}</span>
+              </div>
+              <p class="text-sm text-slate-400 line-clamp-2">${product.description}</p>
+              <div class="mt-4 flex justify-end text-xs font-semibold text-indigo-400 group-hover:underline">View details &rarr;</div>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error("Error drawing grid view components:", err);
+      }
+    }
+
+    // 💻 STEP 2 & 3: REFACTORED CHECKOUT AND VERIFICATION SYSTEM
+    async function checkout(productId) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please sign in to proceed with your purchase.');
+        closeProductModal();
+        openAuthModal('login');
+        return;
+      }
+      
+      try {
+        // 1. Send checkout request to backend to instantiate order
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` 
+          },
+          body: JSON.stringify({ productId })
+        });
+        
+        const orderData = await response.json();
+        if (!response.ok) throw new Error(orderData.error || 'Order initialization failed.');
+
+        // 2. Configure options profile for Razorpay Web Standard Checkout Overlay
+        const options = {
+          "key": orderData.keyId, 
+          "amount": orderData.amount, 
+          "currency": orderData.currency,
+          "name": "PixelVault Assets",
+          "description": orderData.productName,
+          "order_id": orderData.orderId, 
+          "handler": async function (paymentResponse) {
+            try {
+              // On success, forward signatures directly to verification routing engine
+              const verifyRes = await fetch('/api/verify-payment', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: paymentResponse.razorpay_order_id,
+                  razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                  razorpay_signature: paymentResponse.razorpay_signature,
+                  productId: orderData.productId
+                })
+              });
+
+              const verifyData = await verifyRes.json();
+
+              if (verifyRes.ok && verifyData.status === 'success') {
+                window.location.href = `/success.html?session_id=${paymentResponse.razorpay_payment_id}&id=${orderData.productId}`;
+              } else {
+                alert(verifyData.error || 'Payment signature validation failed.');
+              }
+            } catch (err) {
+              console.error('Signature submission failure:', err);
+              alert('Verification request lost network connection.');
+            }
+          },
+          "prefill": {
+            "email": JSON.parse(localStorage.getItem('user'))?.email || ""
+          },
+          "theme": { "color": "#4f46e5" },
+          "modal": {
+            "ondismiss": function() {
+              console.log("🛒 User dismissed the Razorpay checkout view screen.");
+            }
+          }
+        };
+
+        // 3. Mount framework instance and pull overlay view into action
+        const rzp = new Razorpay(options);
+        
+        // Error handler capture catch blocks
+        rzp.on('payment.failed', function (response) {
+          alert(`Payment process interrupted. Reason: ${response.error.description}`);
+        });
+
+        rzp.open();
+        closeProductModal(); // Gracefully drop description component view layout
+        
+      } catch (error) {
+        console.error('Checkout engine fault:', error);
+        alert(error.message || 'Connection dropped during processing.');
+      }
+    }
+
+    checkUserStatus();
+    fetchProducts();
+  </script>
+</body>
+</html>

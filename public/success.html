@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><title>Thank You!</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded-xl shadow-md max-w-md text-center border border-slate-200">
+    <h2 class="text-2xl font-bold text-slate-900 mb-2">🎉 Payment Successful!</h2>
+    <p class="text-slate-600 mb-6">Your download is ready. Click the button below to fetch your design files.</p>
+    <a id="download-btn" href="#" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition">
+      Download Files
+    </a>
+  </div>
+
+  <script>
+    // Pull params from success URL and inject them into the download route
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    const productId = urlParams.get('id');
+
+    if (sessionId && productId) {
+      const downloadBtn = document.getElementById('download-btn');
+      downloadBtn.href = `/download/${productId}?sessionId=${sessionId}`;
+    } else {
+      document.body.innerHTML = "<p class='text-center mt-10'>Invalid Session</p>";
+    }
+  </script>
+</body>
+</html>
