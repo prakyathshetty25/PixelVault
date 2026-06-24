@@ -159,3 +159,5 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Store environment compiled on port ${PORT}`));
+
+module.exports = app;
