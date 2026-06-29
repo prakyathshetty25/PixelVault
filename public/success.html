@@ -1,29 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><title>Thank You!</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Successful | PixelVault</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center">
-  <div class="bg-white p-8 rounded-xl shadow-md max-w-md text-center border border-slate-200">
-    <h2 class="text-2xl font-bold text-slate-900 mb-2">🎉 Payment Successful!</h2>
-    <p class="text-slate-600 mb-6">Your download is ready. Click the button below to fetch your design files.</p>
-    <a id="download-btn" href="#" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition">
-      Download Files
-    </a>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-8 shadow-2xl shadow-indigo-950/30">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-2">Payment Successful!</h2>
+        <p class="text-slate-400">Your purchase is complete and your product is ready.</p>
+      </div>
+
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 mb-6">
+        <h3 class="text-sm font-semibold uppercase tracking-wider text-indigo-400 mb-4">Receipt Summary</h3>
+        <div id="receipt-details" class="space-y-3">
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-400">Product</span>
+            <span id="receipt-product" class="text-white font-medium">-</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-400">Amount Paid</span>
+            <span id="receipt-amount" class="text-indigo-400 font-bold">-</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-400">Payment ID</span>
+            <span id="receipt-payment-id" class="text-slate-300 font-mono text-xs">-</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-400">Order ID</span>
+            <span id="receipt-order-id" class="text-slate-300 font-mono text-xs">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-5 mb-6">
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-indigo-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          <div>
+            <p class="text-sm font-semibold text-indigo-300">Receipt Sent to Your Email</p>
+            <p id="user-email-display" class="text-sm text-slate-400 mt-1">We've sent a detailed receipt with your download link to <strong class="text-white">your registered email</strong>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <a id="download-btn" href="#" class="block w-full text-center py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition">
+          Download Your Product
+        </a>
+        <a href="/dashboard.html" class="block w-full text-center py-3 border border-slate-700 hover:border-indigo-500 text-slate-300 hover:text-white font-semibold rounded-xl transition">
+          Go to My Dashboard
+        </a>
+        <a href="/" class="block w-full text-center py-3 text-slate-500 hover:text-slate-300 text-sm transition">
+          Continue Browsing
+        </a>
+      </div>
+    </div>
   </div>
 
   <script>
-    // Pull params from success URL and inject them into the download route
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session_id');
     const productId = urlParams.get('id');
+    const userEmail = urlParams.get('email');
+    const productName = urlParams.get('product');
+    const amount = urlParams.get('amount');
+    const orderId = urlParams.get('order_id');
 
     if (sessionId && productId) {
       const downloadBtn = document.getElementById('download-btn');
       downloadBtn.href = `/download/${productId}?sessionId=${sessionId}`;
+
+      if (productName) document.getElementById('receipt-product').textContent = decodeURIComponent(productName);
+      if (amount) document.getElementById('receipt-amount').textContent = `₹${(parseInt(amount) / 100).toFixed(2)}`;
+      if (sessionId) document.getElementById('receipt-payment-id').textContent = sessionId;
+      if (orderId) document.getElementById('receipt-order-id').textContent = orderId;
+      else if (sessionId) document.getElementById('receipt-order-id').textContent = sessionId;
+
+      if (userEmail) {
+        document.getElementById('user-email-display').innerHTML =
+          `We've sent a detailed receipt with your download link to <strong class="text-white">${decodeURIComponent(userEmail)}</strong>.`;
+      }
     } else {
-      document.body.innerHTML = "<p class='text-center mt-10'>Invalid Session</p>";
+      document.body.innerHTML = `
+        <div class="min-h-screen flex items-center justify-center p-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 text-center">
+            <h2 class="text-xl font-bold text-white mb-2">Invalid Session</h2>
+            <p class="text-slate-400 mb-6">No payment session found. Please visit the store to browse products.</p>
+            <a href="/" class="inline-block py-3 px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition">Go to Store</a>
+          </div>
+        </div>`;
     }
   </script>
 </body>

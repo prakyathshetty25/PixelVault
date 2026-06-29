@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | PixelVault</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-indigo-500 selection:text-white">
+
+  <nav class="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='/'">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-black text-xl">P</div>
+        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">PixelVault</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-sm font-bold text-white" id="userAvatar">U</div>
+          <div class="hidden sm:block">
+            <div class="text-sm font-semibold text-white" id="userName">User</div>
+            <div class="text-xs text-slate-400" id="userEmail">user@example.com</div>
+          </div>
+        </div>
+        <button onclick="logout()" class="text-sm font-semibold text-slate-400 hover:text-rose-400 transition">Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-white">My Dashboard</h1>
+      <p class="text-slate-400 mt-1">Manage your products and view purchase history.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Total Purchases</p>
+        <p class="text-3xl font-black text-indigo-400" id="totalPurchases">0</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Total Spent</p>
+        <p class="text-3xl font-black text-indigo-400" id="totalSpent">₹0</p>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Products Owned</p>
+        <p class="text-3xl font-black text-indigo-400" id="productsOwned">0</p>
+      </div>
+    </div>
+
+    <div id="errorContainer"></div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-bold text-white">My Products</h2>
+      <p class="text-sm text-slate-400 mt-1">Products are registered to your email and accessible anytime.</p>
+    </div>
+
+    <div id="purchasesContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div class="col-span-full text-center py-12 text-slate-400">Loading your purchases...</div>
+    </div>
+  </main>
+
+  <script>
+    let userToken = null;
+    let userData = null;
+
+    function checkAuth() {
+      userToken = localStorage.getItem('token');
+      userData = JSON.parse(localStorage.getItem('user') || '{}');
+
+      if (!userToken) {
+        window.location.href = '/';
+        return;
+      }
+
+      updateUserInfo();
+      fetchPurchases();
+    }
+
+    function updateUserInfo() {
+      const avatarLetter = (userData.name || 'U').charAt(0).toUpperCase();
+      document.getElementById('userAvatar').textContent = avatarLetter;
+      document.getElementById('userName').textContent = userData.name || 'User';
+      document.getElementById('userEmail').textContent = userData.email || 'user@example.com';
+    }
+
+    async function fetchPurchases() {
+      try {
+        const response = await fetch('/api/purchases', {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${userToken}` }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch purchases');
+
+        const purchases = await response.json();
+        displayPurchases(purchases);
+        updateStats(purchases);
+      } catch (error) {
+        console.error('Error fetching purchases:', error);
+        showError('Failed to load your purchases. Please try again.');
+        document.getElementById('purchasesContainer').innerHTML = '';
+      }
+    }
+
+    function displayPurchases(purchases) {
+      const container = document.getElementById('purchasesContainer');
+
+      if (!purchases || purchases.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-16 bg-slate-900/50 border-2 border-dashed border-slate-800 rounded-2xl">
+            <div class="text-5xl mb-4">📦</div>
+            <h3 class="text-xl font-bold text-white mb-2">No Purchases Yet</h3>
+            <p class="text-slate-400 mb-6">Start exploring our amazing digital products!</p>
+            <a href="/" class="inline-block py-3 px-6 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition">Browse Products</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = purchases.map(purchase => `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-indigo-500/40 transition duration-300 hover:-translate-y-0.5">
+          <div class="flex items-start justify-between mb-4">
+            <h3 class="text-lg font-bold text-white">${escapeHtml(purchase.productName)}</h3>
+            <span class="text-lg font-black text-indigo-400">₹${(purchase.price / 100).toFixed(2)}</span>
+          </div>
+
+          <div class="bg-slate-950 rounded-xl p-4 space-y-2.5 text-sm mb-4 border border-slate-800/50">
+            <div class="flex justify-between">
+              <span class="text-slate-400">Payment ID</span>
+              <span class="text-slate-300 font-mono text-xs">${purchase.paymentId.substring(0, 18)}...</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Order ID</span>
+              <span class="text-slate-300 font-mono text-xs">${purchase.orderId.substring(0, 18)}...</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Date</span>
+              <span class="text-slate-300">${formatDate(purchase.purchasedAt)}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Registered Email</span>
+              <span class="text-indigo-300 font-medium text-xs">${escapeHtml(purchase.userEmail || userData.email)}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 mb-4">
+            ${purchase.status === 'success'
+              ? `<span class="text-xs font-semibold bg-emerald-500/15 text-emerald-300 px-2.5 py-1 rounded-full">${purchase.mockPayment ? 'Test Payment' : '✓ Verified'}</span>`
+              : `<span class="text-xs font-semibold bg-amber-500/15 text-amber-300 px-2.5 py-1 rounded-full">${purchase.status}</span>`
+            }
+            ${!purchase.mockPayment ? `<span class="text-xs font-semibold bg-indigo-500/15 text-indigo-300 px-2.5 py-1 rounded-full">Live</span>` : ''}
+          </div>
+
+          <button onclick="downloadProduct('${escapeHtml(purchase.downloadUrl || '')}', '${escapeHtml(purchase.productName)}')" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Download Product
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function updateStats(purchases) {
+      document.getElementById('totalPurchases').textContent = purchases.length;
+      document.getElementById('productsOwned').textContent = new Set(purchases.map(p => p.productId)).size;
+      const totalSpent = purchases.reduce((sum, p) => sum + p.price, 0);
+      document.getElementById('totalSpent').textContent = `₹${(totalSpent / 100).toFixed(2)}`;
+    }
+
+    function downloadProduct(downloadUrl, productName) {
+      if (!downloadUrl || downloadUrl === '') {
+        alert('Download link is not available for this product.');
+        return;
+      }
+      alert(`Download ready: ${productName}\n\nURL: ${downloadUrl}\n\n(In production this would download the file.)`);
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showError(message) {
+      const container = document.getElementById('errorContainer');
+      container.innerHTML = `<div class="bg-rose-500/10 border border-rose-500/30 text-rose-300 p-4 rounded-xl mb-6">${escapeHtml(message)}</div>`;
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+
+    checkAuth();
+  </script>
+</body>
+</html>
